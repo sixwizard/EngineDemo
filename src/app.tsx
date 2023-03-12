@@ -1,9 +1,26 @@
 import React from 'react'
 import { Graph } from '@antv/x6'
-import { Button } from 'antd';
-import { Select } from 'antd';
+import { Button,Dropdown } from 'antd';
+
+import type { MenuProps } from 'antd';
 
 import './app.css'
+
+const items: MenuProps['items'] = [
+  {
+    label: 'A',
+    key: 'A',
+  },
+  {
+    label: 'B',
+    key: 'B',
+  },
+  {
+    label: 'C',
+    key: 'C',
+  },
+];
+
 
 Graph.registerNode(
   'custom-node',
@@ -28,7 +45,6 @@ export default class Example extends React.Component<any,any> {
     super(props);
     this.state = {
       graph:{},
-      selectValue: "A"
     };
   }
 
@@ -59,7 +75,7 @@ export default class Example extends React.Component<any,any> {
           return this.createEdge({
             attrs: {
               line: {
-                stroke: '#cc3300',
+                stroke: '#00CCFF',
                 strokeWidth: 1,
               },
             },
@@ -108,15 +124,29 @@ export default class Example extends React.Component<any,any> {
     this.container = container
   }
 
-  handleChange = (value: string) => {
-    this.setState({selectValue: value})
+
+  onSave = () => {
+    console.log(this.state.graph.toJSON())
+    localStorage.setItem("data",JSON.stringify(this.state.graph.toJSON()))
   }
 
-  onAdd = () => {
+  onLoad = () => {
+    console.log(localStorage.getItem('data'))
+    this.state.graph.fromJSON(JSON.parse(localStorage.getItem('data')||''))
+  }
+
+  onMenuClick: MenuProps['onClick'] = ({key,domEvent}) => {
+    //@ts-ignore
+    console.log(`locale X is ${domEvent.clientX}, Y is ${domEvent.clientY}`);
+    //@ts-ignore
+    const xValue = domEvent.clientX;
+    //@ts-ignore
+    const yValue = domEvent.clientY;
+
     this.state.graph.addNode({
-      label: this.state.selectValue,
-      x: 60,
-      y: 50,
+      label: key,
+      x: xValue-20,
+      y: yValue-30,
       width: 100,
       height: 40,
       attrs: {
@@ -129,7 +159,7 @@ export default class Example extends React.Component<any,any> {
           ry: 6,
         },
         text:{
-          fill: 'red'
+          fill: '#00CCFF'
         }
       },
       ports: {
@@ -153,7 +183,7 @@ export default class Example extends React.Component<any,any> {
                 magnet: true,
                 stroke: '#8f8f8f',
                 strokeOpacity: '0%',
-                fillOpacity: '0%',
+                fillOpacity: '50%',
                 r: 4,
               },
             },
@@ -171,42 +201,21 @@ export default class Example extends React.Component<any,any> {
         ],
       },
     })
-  }
-
-  onSave = () => {
-    console.log(this.state.graph.toJSON())
-  }
+  };
 
   render() {
+
     return (
         <>
-          <div id="container" className="app" >
-            <div className="app-content" ref={this.refContainer} />
+          <Dropdown menu={{ items, onClick:this.onMenuClick }} trigger={['contextMenu']}>
+            <div id="container" className="app" >
+              <div className="app-content" ref={this.refContainer} />
+            </div>
+          </Dropdown>
+          <div className="button">
+            <Button onClick={this.onLoad}>load</Button>
           </div>
           <div className="button">
-            <Select
-                defaultValue="A"
-                style={{ width: 120 }}
-                onChange={this.handleChange}
-                options={[
-                  {
-                    value: 'A',
-                    label: 'A',
-                  },
-                  {
-                    value: 'B',
-                    label: 'B',
-                  },
-                  {
-                    value: 'C',
-                    label: 'C',
-                  },
-                  {
-                    value: 'D',
-                    label: 'D',
-                  },
-                ]}/>
-            <Button onClick={this.onAdd}>add</Button>
             <Button onClick={this.onSave}>save</Button>
           </div>
         </>
